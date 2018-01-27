@@ -10,7 +10,7 @@ import bg.tusofia.fdiba.gamedev.Sprite;
  * @author Borislav Donev
  *
  */
-public abstract class ObjectEntity extends Entity {
+public abstract class FallingObjectEntity extends Entity {
 
 	private Rectangle me = new Rectangle();
 	private Rectangle him = new Rectangle();
@@ -20,7 +20,7 @@ public abstract class ObjectEntity extends Entity {
 	
 	private Game game = Game.getInstance();
 
-	public ObjectEntity(Sprite sprite, int x, int y) {
+	public FallingObjectEntity(Sprite sprite, int x, int y) {
 		super(sprite, x, y);
 		this.fallingSpeed = 5 + 2*game.getLevel();
 	}

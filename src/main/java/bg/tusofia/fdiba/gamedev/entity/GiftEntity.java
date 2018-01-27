@@ -12,7 +12,7 @@ import bg.tusofia.fdiba.gamedev.util.Util;
  * When it falls to the ground the score is decreased.
  * @author Borislav Donev
  */
-public class GiftEntity extends ObjectEntity {
+public class GiftEntity extends FallingObjectEntity {
 
 	private static Texture giftTexture = Util.loadPicture(Constants.GIFT_PIC, Constants.PNG_PIC_FORMAT);
 	private static Sprite giftSprite = new Sprite(giftTexture);
@@ -24,12 +24,7 @@ public class GiftEntity extends ObjectEntity {
 	
 	@Override
 	public void collected() {
-		this.setVisible(false);
 		game.increaseScore();
-	}
-
-	public void fallen() {
-		game.decreaseScore();
 	}
 
 }

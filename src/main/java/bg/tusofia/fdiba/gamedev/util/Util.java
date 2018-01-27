@@ -1,6 +1,6 @@
 package bg.tusofia.fdiba.gamedev.util;
 
-import static bg.tusofia.fdiba.gamedev.util.Constants.SCREEN_SIZE_WIDTH;
+import static bg.tusofia.fdiba.gamedev.util.Constants.*;
 
 import java.io.IOException;
 import java.util.Random;
@@ -11,15 +11,18 @@ import org.newdawn.slick.util.ResourceLoader;
 
 import bg.tusofia.fdiba.gamedev.entity.GiftEntity;
 import bg.tusofia.fdiba.gamedev.entity.MineEntity;
-import bg.tusofia.fdiba.gamedev.entity.ObjectEntity;
+import bg.tusofia.fdiba.gamedev.entity.FallingObjectEntity;
 
 /**
  * Utility class with helper methods
  * @author Borislav Donev
  *
  */
-public class Util {
+public final class Util {
 	
+	private Util() {
+		throw new AssertionError("This class should not be instanced");
+	}
 	
 	/** Used to randomize falling objects */
 	private final static Random random = new Random();
@@ -51,18 +54,19 @@ public class Util {
 	 *            the position for the object to be loaded
 	 * @return the loaded object
 	 */
-	public static ObjectEntity loadNextObject() {
+	public static FallingObjectEntity loadNextObject() {
 		// Get random position within the screen boundaries where a sprite would be
 		// completely visible
-		int randomPosition = random.nextInt(SCREEN_SIZE_WIDTH - 60);
+		int randomPositionX = random.nextInt(OBJECT_MAX_POS_X);
+		int randomPositionY = random.nextInt(OBJECT_MAX_POS_Y);
 		
 		// Is the object a mine or a gift
 		boolean isMine = random.nextBoolean();
-		ObjectEntity fallingObject = null;
+		FallingObjectEntity fallingObject = null;
 		if (isMine) {
-			fallingObject = new MineEntity(randomPosition, 0);
+			fallingObject = new MineEntity(randomPositionX, -randomPositionY);
 		} else {
-			fallingObject = new GiftEntity(randomPosition, 0);
+			fallingObject = new GiftEntity(randomPositionX, -randomPositionY);
 		}
 		return fallingObject;
 	}

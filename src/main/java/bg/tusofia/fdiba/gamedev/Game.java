@@ -4,6 +4,7 @@ import static bg.tusofia.fdiba.gamedev.util.Constants.*;
 import static bg.tusofia.fdiba.gamedev.util.Util.*;
 
 import java.awt.Font;
+import java.util.ArrayList;
 
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
@@ -18,7 +19,7 @@ import org.newdawn.slick.opengl.Texture;
 import bg.tusofia.fdiba.gamedev.entity.Entity;
 import bg.tusofia.fdiba.gamedev.entity.GiftEntity;
 import bg.tusofia.fdiba.gamedev.entity.HeroEntity;
-import bg.tusofia.fdiba.gamedev.entity.ObjectEntity;
+import bg.tusofia.fdiba.gamedev.entity.FallingObjectEntity;
 
 /**
  * The main game class
@@ -37,15 +38,18 @@ public class Game {
 	/** The main character entity */
 	private Entity hero;
 	
-	/** The currently falling object */
-	private ObjectEntity fallingObject;
+	/** A list containing the currently falling objects */
+	private ArrayList<FallingObjectEntity> fallingObjects = new ArrayList<>();
+	
+	/** A list containing the objects that will be removed in the current iteration */
+	private ArrayList<FallingObjectEntity> objectsToRemove = new ArrayList<>();
 	
 	/** The number of lives left */
 	private int numlives = STARTING_NUMBER_OF_LIVES;
 	
-	/** The sprites representing the lives of the player */
-	private Sprite[] lives = new Sprite[STARTING_NUMBER_OF_LIVES];
-
+	/** The sprite representing the lives of a player */
+	private Sprite heartSprite;
+	
 	/** The background sprite */
 	private Sprite background;
 	
@@ -173,9 +177,10 @@ public class Game {
 		hero = new HeroEntity(PLAYER_POS_X, PLAYER_POS_Y);
 		
 		Texture heartTexture = loadPicture(HEART_PIC, PNG_PIC_FORMAT);
-		for (int i = 0; i < STARTING_NUMBER_OF_LIVES; i++) {
-			lives[i] = new Sprite(heartTexture);
-		}
+		heartSprite = new Sprite(heartTexture);
+//		for (int i = 0; i < STARTING_NUMBER_OF_LIVES; i++) {
+//			lives[i] = new Sprite(heartTexture);
+//		}
 		
 		Texture popupWindowTexture = loadPicture(POPUP_WINDOW_PIC, PNG_PIC_FORMAT);
 		popupWindow = new Sprite(popupWindowTexture);
@@ -235,38 +240,42 @@ public class Game {
 		if (!heroAlive) {
 			endGame();
 		} else {
-			// The game ends instantly when ESC is pressed
-			if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
-				finished = true;
+			handleInput();
+			updateObjects();
+		}
+	}
+	
+	private void handleInput() {
+		// The game ends instantly when ESC is pressed
+		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
+			finished = true;
+		}
+
+		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
+			if (hero.getX() + hero.getWidth() < SCREEN_SIZE_WIDTH) {
+				hero.setX(hero.getX() + 10 + 2 * level);
 			}
-			
-			if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
-				if (hero.getX() + hero.getWidth() < SCREEN_SIZE_WIDTH) {
-					hero.setX(hero.getX() + 10 + 2*level);
-				}
+		}
+
+		if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
+			if (hero.getX() > 0) {
+				hero.setX(hero.getX() - 10 - 2 * level);
 			}
-			
-			if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
-				if (hero.getX() > 0) {
-					hero.setX(hero.getX() - 10 - 2*level);
-				}
-			}
-			updateObject();
 		}
 	}
 	
 	/**
-	 * Updates the status of the currently falling object. Checks for collision with
-	 * the player. If there is no object, loads a new one.
+	 * Updates the status of the currently falling objects. Checks for collision with
+	 * the player.
 	 */
-	private void updateObject() {
-		if (fallingObject != null && fallingObject.isVisible()) {
+	private void updateObjects() {
+		for (FallingObjectEntity fallingObject : fallingObjects) {
 			fallingObject.setY(fallingObject.getY() + fallingObject.getFallingSpeed());
-			
+
 			// If an objects falls to the ground
 			if (fallingObject.getY() + fallingObject.getHeight() >= PLAYER_POS_Y + hero.getHeight()) {
-				fallingObject.setVisible(false);
-				
+				objectsToRemove.add(fallingObject);
+
 				// If a gift is missed, reduce score
 				if (fallingObject instanceof GiftEntity) {
 					decreaseScore();
@@ -274,9 +283,23 @@ public class Game {
 			}
 			if (fallingObject.collidesWith(hero)) {
 				fallingObject.collected();
+				objectsToRemove.add(fallingObject);
 			}
-		} else {
-			fallingObject = loadNextObject();
+		}
+		fallingObjects.removeAll(objectsToRemove);
+		objectsToRemove.clear();
+		generateNewObjects();
+	}
+
+	/**
+	 * Generates new objects when the number of objects is less than the maximum
+	 * object count.
+	 */
+	private void generateNewObjects() {
+		int numberOfNewObjects =  MAX_OBJECT_COUNT - fallingObjects.size();
+		for (int i = 0; i < numberOfNewObjects; i++) {
+			FallingObjectEntity newObject = loadNextObject();
+			fallingObjects.add(newObject);
 		}
 	}
 
@@ -287,19 +310,19 @@ public class Game {
 		GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_STENCIL_BUFFER_BIT);
 		Color.white.bind();
 
-		background.getTexture().bind();
 		background.draw(0, 0);
 		
 		if (heroAlive) {
 			hero.draw();
 
-			if (fallingObject != null && fallingObject.isVisible()) {
-				fallingObject.draw();
+			for (FallingObjectEntity fallingObject : fallingObjects) {
+				if (fallingObject != null && fallingObject.isVisible()) {
+					fallingObject.draw();
+				}
 			}
 
-			// The position of the first heart picture drawn on the screen
 			for (int i = 0; i < numlives; i++) {
-				lives[i].draw(SCREEN_SIZE_WIDTH - (1+i)*lives[i].getWidth(), 0);
+				heartSprite.draw(SCREEN_SIZE_WIDTH - (1+i)*heartSprite.getWidth(), 0);
 			}
 			
 			scoreString = SCORE_INFO + String.valueOf(score);
@@ -332,18 +355,34 @@ public class Game {
 		Display.destroy();
 	}
 	
+	/**
+	 * Increases the score after a gift is collected
+	 */
 	public void increaseScore() {
-		this.score += 10*level;
+		this.score += SCORE_COEFFICIENT*level;
 		this.giftsCollected++;
-		if (giftsCollected >= 10*level) {
+		if (giftsCollected >= NUM_GIFTS_COLLECTED_TO_PROGRESS*level) {
 			level++;
 		}
 	}
 	
+	/**
+	 * Decreases the score after a gift has fallen to the ground
+	 */
 	public void decreaseScore() {
-		this.score -= 10*level;
+		this.score -= SCORE_COEFFICIENT;
 		if (this.score < 0) {
 			this.score = 0;
+		}
+	}
+
+	/**
+	 * Reduces the number of lives after a mine has collided with the character
+	 */
+	public void reduceLives() {
+		numlives--;
+		if (numlives == 0) {
+			heroAlive = false;
 		}
 	}
 	
@@ -353,13 +392,6 @@ public class Game {
 	
 	public int getLevel() {
 		return level;
-	}
-	
-	public void reduceLives() {
-		numlives--;
-		if (numlives == 0) {
-			heroAlive = false;
-		}
 	}
 	
 	public boolean isFinished() {

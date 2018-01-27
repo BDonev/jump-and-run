@@ -12,7 +12,7 @@ import bg.tusofia.fdiba.gamedev.util.Util;
  * @author Borislav Donev
  *
  */
-public class MineEntity extends ObjectEntity {
+public class MineEntity extends FallingObjectEntity {
 	private static Texture mineTexture = Util.loadPicture(Constants.MINE_PIC, Constants.PNG_PIC_FORMAT);
 	private static Sprite mineSprite = new Sprite(mineTexture);
 	private Game game = Game.getInstance();
@@ -23,7 +23,6 @@ public class MineEntity extends ObjectEntity {
 	
 	@Override
 	public void collected() {
-		this.setVisible(false);
 		game.reduceLives();
 	}
 

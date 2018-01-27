@@ -5,8 +5,12 @@ package bg.tusofia.fdiba.gamedev.util;
  * @author Borislav Donev
  *
  */
-public class Constants {
+public final class Constants {
 
+	private Constants() {
+		throw new AssertionError("This class should not be instanced");
+	}
+	
 	/** Game title */
 	public static final String GAME_TITLE = "Jump and run";
 	
@@ -19,7 +23,7 @@ public class Constants {
 	
 	public static final int STARTING_NUMBER_OF_LIVES = 3;
 
-	/** Picture constants */
+	/** Picture name constants */
 	public static final String PNG_PIC_FORMAT = "PNG";
 	public static final String HERO_PIC = "santa";
 	public static final String CHEST_PIC = "chest";
@@ -40,5 +44,11 @@ public class Constants {
 	/** Score popup screen position */
 	public static final int POPUP_POS_X = SCREEN_SIZE_WIDTH / 3;
 	public static final int POPUP_POS_Y = SCREEN_SIZE_HEIGHT / 3;
+	
+	public static final int OBJECT_MAX_POS_X = SCREEN_SIZE_WIDTH - 60;
+	public static final int OBJECT_MAX_POS_Y = 3*SCREEN_SIZE_HEIGHT;
+	public static final int MAX_OBJECT_COUNT = 5;
+	public static final int SCORE_COEFFICIENT = 10;
+	public static final int NUM_GIFTS_COLLECTED_TO_PROGRESS = 10;
 	
 }
